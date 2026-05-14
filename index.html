@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Museum Mystery · Digital Escape Room</title>
+  <style>
+    :root{
+      --green:#2f4f45;
+      --green-2:#45685b;
+      --mint:#dceee8;
+      --beige:#f5efe2;
+      --cream:#fffaf0;
+      --grey:#ececea;
+      --ink:#26322e;
+      --muted:#6d756f;
+      --gold:#c99a42;
+      --red:#b33a3a;
+      --blue:#3077a8;
+      --shadow:0 18px 45px rgba(20,31,28,.16);
+      --radius:24px;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at top,#fffaf0 0,#f1eadc 38%,#d9ded9 100%);color:var(--ink)}
+    body{display:flex;justify-content:center;padding:22px}
+    .app{width:min(1180px,100%);background:rgba(255,255,255,.72);border:1px solid rgba(47,79,69,.22);border-radius:32px;box-shadow:var(--shadow);overflow:hidden;backdrop-filter:blur(8px)}
+    header{background:linear-gradient(135deg,var(--green),#1f3530);color:white;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .brand{display:flex;gap:15px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,#f8e9bc,#d0a84b);display:grid;place-items:center;color:#1d302b;font-size:29px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+    h1{margin:0;font-size:clamp(1.45rem,3vw,2.25rem);letter-spacing:.02em}
+    .subtitle{margin:.15rem 0 0;color:#e9eee9;font-size:.96rem}
+    .top-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button,.btn{border:0;border-radius:999px;padding:11px 17px;background:var(--green);color:white;font-weight:700;cursor:pointer;box-shadow:0 6px 15px rgba(34,50,44,.16);transition:.16s transform,.16s filter,.16s background;display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-size:.95rem}
+    button:hover,.btn:hover{transform:translateY(-1px);filter:brightness(1.04)}
+    button.secondary{background:white;color:var(--green);border:1px solid rgba(47,79,69,.25)}
+    button.ghost{background:rgba(255,255,255,.16);color:white;border:1px solid rgba(255,255,255,.25)}
+    button.warning{background:#8e5529}
+    button.danger{background:#963a3a}
+    button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    main{padding:24px}
+    .progress-wrap{padding:16px 24px;background:rgba(245,239,226,.9);border-bottom:1px solid rgba(47,79,69,.14)}
+    .progress-line{height:11px;background:#ddd7ca;border-radius:999px;overflow:hidden;margin-top:10px}
+    .progress-bar{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#6e8f7c);transition:.4s width}
+    .steps{display:flex;gap:8px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+    .step-pill{padding:6px 10px;border-radius:999px;background:white;border:1px solid rgba(47,79,69,.15)}
+    .step-pill.done{background:var(--mint);color:var(--green);font-weight:700}
+    .screen{display:none;animation:fade .22s ease-out}
+    .screen.active{display:block}
+    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .hero{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:24px;align-items:stretch}
+    @media(max-width:850px){.hero{grid-template-columns:1fr}header{align-items:flex-start}.top-actions{width:100%}}
+    .card{background:rgba(255,255,255,.93);border:1px solid rgba(47,79,69,.18);border-radius:var(--radius);padding:22px;box-shadow:0 10px 28px rgba(35,47,43,.08)}
+    .card.mint{background:linear-gradient(180deg,#f9fffc,var(--mint))}
+    .card.beige{background:linear-gradient(180deg,#fffdf7,var(--beige))}
+    .card.dark{background:linear-gradient(135deg,#2f4f45,#20352f);color:white}
+    .card h2,.card h3{margin-top:0;color:var(--green)}
+    .card.dark h2,.card.dark h3{color:white}
+    p{line-height:1.55}
+    .small{font-size:.9rem;color:var(--muted)}
+    .card.dark .small{color:#d9e4df}
+    .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+    .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    @media(max-width:760px){.grid-2,.grid-3{grid-template-columns:1fr}}
+    label{font-weight:700;color:var(--green);display:block;margin:13px 0 7px}
+    input[type="text"],textarea,select{width:100%;border:1px solid rgba(47,79,69,.25);border-radius:16px;padding:12px 14px;background:#fff;color:var(--ink);font-size:1rem;outline:none}
+    input[type="range"]{width:100%}
+    .choice-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .choice{border:1px solid rgba(47,79,69,.2);background:#fff;color:var(--green);border-radius:18px;padding:13px 16px;cursor:pointer;font-weight:700;box-shadow:none}
+    .choice.selected{background:var(--green);color:white}
+    .feedback{margin-top:14px;padding:13px 15px;border-radius:18px;background:#f2f2ef;border:1px solid rgba(47,79,69,.12);display:none}
+    .feedback.show{display:block}
+    .feedback.ok{background:#e7f4eb;border-color:#98c5a4;color:#1f5a35}
+    .feedback.no{background:#f8e9e7;border-color:#d4938d;color:#8d2d25}
+    .feedback.info{background:#eaf1f7;border-color:#97b7d0;color:#245375}
+    .museum-map{display:grid;gap:13px;margin-top:18px}
+    .map-row{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:12px}
+    .map-room{padding:16px;border-radius:18px;background:var(--mint);border:1px solid rgba(17,105,85,.45);text-align:center;color:#0f6b58;font-weight:800;min-height:88px;display:grid;place-items:center}
+    .map-room.gold{background:#fff3da;color:#7c4a09;border-color:#d7a54a}
+    .arrow{font-size:1.6rem;color:#7a827b;text-align:center}
+    @media(max-width:800px){.map-row{grid-template-columns:1fr}.arrow{transform:rotate(90deg)}}
+    .badge{display:inline-flex;align-items:center;gap:6px;background:#f5efe2;color:#5f4721;border:1px solid #d7bd78;border-radius:999px;padding:6px 10px;font-weight:700;font-size:.86rem;margin:3px}
+    .badge.green{background:#e8f4ed;border-color:#9ac1aa;color:#22543d}
+    .badge.grey{background:#eeeeec;border-color:#c8cbc6;color:#58605a}
+    .word-search-wrap{display:grid;grid-template-columns:minmax(260px,auto) minmax(240px,1fr);gap:20px;align-items:start}
+    @media(max-width:860px){.word-search-wrap{grid-template-columns:1fr}}
+    .word-grid{display:grid;grid-template-columns:repeat(12,34px);gap:5px;justify-content:start;background:#e9e3d6;padding:12px;border-radius:20px;border:1px solid rgba(47,79,69,.18);width:max-content;max-width:100%;overflow:auto}
+    .cell{width:34px;height:34px;border-radius:10px;border:1px solid rgba(47,79,69,.16);background:white;display:grid;place-items:center;font-weight:900;color:#31433d;cursor:pointer;user-select:none}
+    .cell.selected{background:#d5ebdf;outline:2px solid #7cae96}
+    .cell.found{background:#c99a42;color:white;outline:2px solid #a06f20}
+    .word-list{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 18px}
+    .word-chip{padding:8px 11px;border-radius:999px;background:#f0f1ee;border:1px solid #d1d5ce;color:#666;font-weight:800}
+    .word-chip.found{background:#e6f3e9;color:#1f6a3f;border-color:#83b992;text-decoration:line-through}
+    .clue-box{margin-top:16px;padding:15px;border-radius:18px;background:#fff8e8;border:1px dashed #c99a42;color:#62430d;font-weight:800}
+    .inline-select{display:inline-block;width:auto;min-width:132px;margin:4px;padding:8px 10px;border-radius:12px}
+    .question{padding:16px;border-radius:18px;background:#f8f7f2;border:1px solid rgba(47,79,69,.12);margin:12px 0}
+    .question p{margin-top:0;font-weight:700}
+    .suspect-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px;margin-top:14px}
+    @media(max-width:760px){.suspect-grid{grid-template-columns:1fr}}
+    .suspect{background:#fff;border:1px solid rgba(47,79,69,.18);border-radius:20px;padding:16px;position:relative;overflow:hidden}
+    .suspect:before{content:"";position:absolute;right:-32px;top:-32px;width:90px;height:90px;border-radius:999px;background:rgba(201,154,66,.16)}
+    .suspect h4{margin:.1rem 0 .4rem;color:var(--green);font-size:1.1rem}
+    .evidence{background:#26322e;color:white;border-radius:20px;padding:18px;margin:16px 0}
+    .evidence h3{color:white;margin-top:0}
+    .audio-panel{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:18px;align-items:start}
+    @media(max-width:760px){.audio-panel{grid-template-columns:1fr}}
+    .transcript{display:none;background:#fff;border-left:5px solid var(--gold);border-radius:16px;padding:14px;margin-top:12px}
+    .transcript.show{display:block}
+    .montessori-symbols{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+    .symbol-card{background:#fff;border:1px solid rgba(47,79,69,.18);border-radius:16px;padding:12px;min-width:142px;display:flex;align-items:center;gap:10px}
+    .sym{display:inline-grid;place-items:center;font-weight:900;color:#111;flex:0 0 auto}
+    .sym.article{width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:18px solid #72c8e9}
+    .sym.noun{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:28px solid #111}
+    .sym.verb{width:24px;height:24px;border-radius:999px;background:#df2525}
+    .sym.prep{width:28px;height:18px;border-radius:0 0 20px 20px;background:#5abf65}
+    .tile-area{min-height:74px;background:#f7f3ea;border:1px dashed rgba(47,79,69,.3);border-radius:22px;padding:12px;display:flex;gap:9px;flex-wrap:wrap;align-items:flex-start}
+    .word-tile{background:#fff;border:1px solid rgba(47,79,69,.24);border-radius:999px;padding:9px 13px;display:inline-flex;align-items:center;gap:7px;font-weight:900;color:#284139;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.06)}
+    .word-tile.used{opacity:.45;pointer-events:none}
+    .sentence-slot{background:#ebf4ee;border:1px solid #94bba2}
+    .footer-note{padding:16px 24px;background:#f0ebe0;border-top:1px solid rgba(47,79,69,.15);font-size:.85rem;color:#66706a;text-align:center}
+    .modal{position:fixed;inset:0;background:rgba(18,29,26,.54);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+    .modal.show{display:flex}
+    .modal-content{background:white;border-radius:28px;padding:24px;max-width:720px;width:min(100%,720px);box-shadow:var(--shadow)}
+    .teacher-note{border-left:5px solid var(--green);background:#eff7f3;padding:14px;border-radius:14px;margin:12px 0}
+    .sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+    .confetti{font-size:3rem;line-height:1;margin-bottom:10px}
+    .result-table{width:100%;border-collapse:collapse;margin:12px 0;background:white;border-radius:16px;overflow:hidden}
+    .result-table th,.result-table td{padding:11px;border-bottom:1px solid #e5e1d7;text-align:left}
+    .result-table th{background:var(--green);color:white}
+    .lock{font-size:1.2rem}
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">🏛️</div>
+      <div>
+        <h1>The Museum Mystery</h1>
+        <p class="subtitle">A digital escape room for 3º ESO · Art, English and critical thinking</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="ghost" onclick="openTeacherNotes()">Teacher notes</button>
+      <button class="ghost" onclick="resetGame()">Restart</button>
+    </div>
+  </header>
+
+  <div class="progress-wrap">
+    <div class="steps" id="stepPills"></div>
+    <div class="progress-line" aria-label="Progress"><div class="progress-bar" id="progressBar"></div></div>
+  </div>
+
+  <main>
+    <section class="screen active" id="screen-start">
+      <div class="hero">
+        <div class="card dark">
+          <h2>Briefing: the museum doors have locked.</h2>
+          <p>The Moonstone Mask has disappeared from the main gallery. Your team is trapped inside the museum after closing time. To escape, you must collect clues, solve language challenges and identify the thief.</p>
+          <p>This activity has five rooms: vocabulary, grammar, reading, listening and a Montessori-inspired final password.</p>
+          <div class="teacher-note">
+            <strong>Mission:</strong> take notes. Some words from each room will be needed later to open the final door.
+          </div>
+          <button onclick="showScreen('pretest')">Start individual pre-test</button>
+        </div>
+        <div class="card beige">
+          <h2>Set up your team</h2>
+          <label for="teamName">Team name</label>
+          <input id="teamName" type="text" placeholder="e.g. The Gallery Detectives" />
+          <label for="players">Names of players</label>
+          <textarea id="players" rows="4" placeholder="Write 2 or 3 names"></textarea>
+          <p class="small">The pre-test gives a suggested level. You can still choose A, B or C in the briefing.</p>
+          <div class="clue-box"><span class="lock">🔐</span> Final objective: escape the museum and answer: <em>Who stole the Moonstone Mask?</em></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-pretest">
+      <div class="card">
+        <h2>Fase 0 · Individual pre-test</h2>
+        <p>Answer quickly. This is not a grade; it helps the team choose an appropriate level of support.</p>
+        <div class="grid-2">
+          <div>
+            <label>How motivated do you feel about learning English today?</label>
+            <input type="range" min="1" max="5" value="3" id="preMotivation" />
+            <p class="small">1 = low · 5 = very high</p>
+          </div>
+          <div>
+            <label>How familiar are you with escape rooms or active learning activities?</label>
+            <select id="preExperience">
+              <option value="1">Not familiar</option>
+              <option value="2">A little familiar</option>
+              <option value="3">Quite familiar</option>
+              <option value="4">Very familiar</option>
+            </select>
+          </div>
+        </div>
+        <div id="preQuestions"></div>
+        <button onclick="submitPretest()">Submit pre-test and get suggested group</button>
+        <div class="feedback" id="preFeedback"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-briefing">
+      <div class="hero">
+        <div class="card">
+          <h2>Fase 1 · Briefing and level selection</h2>
+          <p>Your group level adapts the support you receive during the escape.</p>
+          <div class="grid-3">
+            <div class="card mint">
+              <h3>Group A</h3>
+              <p>More hints, clearer instructions and more visible support.</p>
+              <button class="secondary" onclick="selectGroup('A')">Choose A</button>
+            </div>
+            <div class="card beige">
+              <h3>Group B</h3>
+              <p>Balanced difficulty with some guidance and standard tasks.</p>
+              <button class="secondary" onclick="selectGroup('B')">Choose B</button>
+            </div>
+            <div class="card mint">
+              <h3>Group C</h3>
+              <p>More autonomy, fewer hints and more inferential decisions.</p>
+              <button class="secondary" onclick="selectGroup('C')">Choose C</button>
+            </div>
+          </div>
+          <div class="feedback info show" id="groupFeedback">Suggested group will appear after the pre-test.</div>
+          <p class="small">You will need a notebook. Write down important words, suspects, times and evidence.</p>
+          <button id="enterMuseumBtn" onclick="enterMuseum()" disabled>Enter the museum</button>
+        </div>
+        <div class="card beige">
+          <h2>Escape structure</h2>
+          <div class="museum-map">
+            <div class="map-row">
+              <div class="map-room">Room 1<br>Vocabulary<br><span class="small">Word search + report</span></div>
+              <div class="arrow">→</div>
+              <div class="map-room">Room 2<br>Grammar<br><span class="small">Narrative tenses</span></div>
+              <div class="arrow">→</div>
+              <div class="map-room">Room 3<br>Reading<br><span class="small">Cluedo suspects</span></div>
+            </div>
+            <div class="map-row">
+              <div class="map-room">Room 4<br>Listening<br><span class="small">Police clue</span></div>
+              <div class="arrow">→</div>
+              <div class="map-room gold">Room 5<br>Critical thinking<br><span class="small">Montessori password</span></div>
+              <div class="arrow">→</div>
+              <div class="map-room gold">Escape<br><span class="small">Who stole the mask?</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-room1">
+      <div class="card">
+        <h2>Room 1 · Vocabulary: The Word Search Gallery</h2>
+        <p>Find the museum words hidden in the grid. Click letters to select them. When all letters of a word are selected, the word is confirmed automatically.</p>
+        <div class="word-search-wrap">
+          <div>
+            <div class="word-grid" id="wordGrid" aria-label="Word search grid"></div>
+            <div class="choice-row"><button class="secondary" onclick="clearSelectedLetters()">Clear selected letters</button><button class="secondary" onclick="revealVocabHint()">Hint</button></div>
+          </div>
+          <div>
+            <h3>Target words</h3>
+            <div class="word-list" id="wordList"></div>
+            <div class="feedback info" id="vocabHint"></div>
+            <h3>Final task: complete the police report</h3>
+            <p>Use the words you found to complete the report.</p>
+            <div class="question" id="policeReport"></div>
+            <button onclick="checkPoliceReport()">Check report</button>
+            <div class="feedback" id="room1Feedback"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-room2">
+      <div class="card">
+        <h2>Room 2 · Grammar: The Timeline Corridor</h2>
+        <p>Choose the correct verb form to reconstruct the night of the robbery. Think about completed actions and background actions.</p>
+        <div id="grammarQuestions"></div>
+        <button onclick="checkGrammar()">Check grammar lock</button>
+        <div class="feedback" id="grammarFeedback"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-room3">
+      <div class="card">
+        <h2>Room 3 · Reading: Cluedo in the Museum</h2>
+        <p>Read the suspect cards and the evidence board. Then choose the most logical conclusions.</p>
+        <div class="suspect-grid">
+          <div class="suspect"><h4>1. Ms Green · Curator</h4><p>“I locked Gallery 2 at eight o’clock and went straight to my office. I was writing an email when the alarm rang.”</p><p class="small">Evidence: her computer was active at 8:11.</p></div>
+          <div class="suspect"><h4>2. Leo Park · Security guard</h4><p>“I was in the control room. One camera stopped working for one minute, so I was checking the system.”</p><p class="small">Evidence: the control-room log confirms he was there.</p></div>
+          <div class="suspect"><h4>3. Clara Moon · Painter</h4><p>“I was preparing my exhibition in the studio. I carried a large portfolio because my paintings are fragile.”</p><p class="small">Evidence: blue paint was found near the studio, not near the mask case.</p></div>
+          <div class="suspect"><h4>4. Mr Blake · Art critic</h4><p>“I left the museum before eight. I did not see anything unusual.”</p><p class="small">Evidence: his visitor pass was used at the side door at 8:28.</p></div>
+        </div>
+        <div class="evidence">
+          <h3>Evidence board</h3>
+          <p>The Moonstone Mask disappeared at about 8:30. The main door was locked. Dusty black boot prints were found near the side stairs. A theatre ticket was found under the side-door mat.</p>
+        </div>
+        <div id="readingQuestions"></div>
+        <button onclick="checkReading()">Check reading lock</button>
+        <div class="feedback" id="readingFeedback"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-room4">
+      <div class="card">
+        <h2>Room 4 · Listening: The Police Message</h2>
+        <p>Listen to the police conversation. In this HTML version, the listening is generated by your browser using text-to-speech. If your browser blocks it, use the transcript button as a fallback.</p>
+        <div class="audio-panel">
+          <div>
+            <button onclick="playListening()">▶ Play police message</button>
+            <button class="secondary" onclick="showTranscript()">Show transcript / fallback</button>
+            <span class="badge grey" id="playCountBadge">Plays: 0</span>
+            <div class="transcript" id="transcriptBox">
+              <p><strong>Officer:</strong> We checked the cameras. The thief did not leave by the main door.</p>
+              <p><strong>Guard:</strong> Then how did the thief escape?</p>
+              <p><strong>Officer:</strong> Through the side door, under the stairs. We also found black boot prints and a torn theatre ticket.</p>
+              <p><strong>Guard:</strong> The visitor who said he left early had black boots and a theatre ticket.</p>
+              <p><strong>Officer:</strong> Keep that detail. It is the final clue.</p>
+            </div>
+          </div>
+          <div class="card mint">
+            <h3>Listening tips</h3>
+            <p class="small" id="listeningTip">Group support appears after level selection.</p>
+          </div>
+        </div>
+        <div id="listeningQuestions"></div>
+        <button onclick="checkListening()">Check listening lock</button>
+        <div class="feedback" id="listeningFeedback"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-room5">
+      <div class="card">
+        <h2>Room 5 · Critical Thinking: Montessori Grammar Password</h2>
+        <p>Use the words collected during the escape. Click the tiles in the correct order to build the sentence-password.</p>
+        <div class="montessori-symbols">
+          <div class="symbol-card"><span class="sym article" aria-hidden="true"></span><div><strong>Article</strong><br><span class="small">the</span></div></div>
+          <div class="symbol-card"><span class="sym noun" aria-hidden="true"></span><div><strong>Noun</strong><br><span class="small">thief, mask, stairs</span></div></div>
+          <div class="symbol-card"><span class="sym verb" aria-hidden="true"></span><div><strong>Verb</strong><br><span class="small">hid</span></div></div>
+          <div class="symbol-card"><span class="sym prep" aria-hidden="true"></span><div><strong>Preposition</strong><br><span class="small">under</span></div></div>
+        </div>
+        <h3>Collected word tiles</h3>
+        <div class="tile-area" id="tileBank"></div>
+        <h3>Your sentence</h3>
+        <div class="tile-area" id="sentenceArea"></div>
+        <div class="choice-row">
+          <button class="secondary" onclick="undoTile()">Undo last tile</button>
+          <button class="secondary" onclick="resetTiles()">Reset sentence</button>
+          <button onclick="checkMontessoriSentence()">Check sentence</button>
+        </div>
+        <div class="feedback" id="montessoriFeedback"></div>
+        <div class="question">
+          <label for="passwordInput">Final door password</label>
+          <input type="text" id="passwordInput" placeholder="Write the sentence-password" />
+          <button style="margin-top:10px" onclick="checkPassword()">Open final door</button>
+          <div class="feedback" id="passwordFeedback"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-final">
+      <div class="card beige">
+        <h2>Final question · Who stole the Moonstone Mask?</h2>
+        <p>The door is almost open. Use all the evidence from the vocabulary, grammar, reading and listening rooms.</p>
+        <label for="thiefAnswer">Write the thief's name or role</label>
+        <input type="text" id="thiefAnswer" placeholder="e.g. ..." />
+        <button style="margin-top:12px" onclick="checkFinalAnswer()">Accuse the thief</button>
+        <div class="feedback" id="finalFeedback"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-posttest">
+      <div class="card">
+        <div class="confetti">🎉</div>
+        <h2>You escaped the museum.</h2>
+        <p>Now complete the individual post-test and debriefing. Compare your answers with the pre-test and reflect on your strategies.</p>
+        <div id="postQuestions"></div>
+        <label for="debriefReflection">Debriefing: What helped your team solve the mystery?</label>
+        <textarea id="debriefReflection" rows="4" placeholder="Write about strategies, English use, collaboration and clues."></textarea>
+        <button onclick="submitPosttest()">Submit post-test</button>
+        <div class="feedback" id="postFeedback"></div>
+        <div id="resultsPanel"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer-note">Created by Cristina Matoses de la Ossa · Universidad Católica de Valencia · Facultad de Educación</div>
+</div>
+
+<div class="modal" id="teacherModal" role="dialog" aria-modal="true" aria-labelledby="teacherTitle">
+  <div class="modal-content">
+    <h2 id="teacherTitle">Teacher notes</h2>
+    <p>This prototype follows the structure in the design document: pre-test, briefing, adaptive group selection, five museum rooms, final accusation, post-test and debriefing.</p>
+    <div class="teacher-note"><strong>Listening honesty:</strong> this HTML does not include a recorded audio file. It uses browser text-to-speech, so it works in many modern browsers but may depend on device/browser permissions. A transcript fallback is included.</div>
+    <p><strong>Suggested classroom use:</strong> groups of 2–3 students, one shared device, notebooks for clues, teacher-led debriefing after completion.</p>
+    <p><strong>Answers:</strong> final password: <em>THE THIEF HID THE MASK UNDER THE STAIRS</em>. Final thief: <em>Mr Blake / the art critic</em>.</p>
+    <button onclick="closeTeacherNotes()">Close</button>
+  </div>
+</div>
+
+<script>
+const screens = ['start','pretest','briefing','room1','room2','room3','room4','room5','final','posttest'];
+const stepLabels = ['Start','Pre-test','Briefing','Vocabulary','Grammar','Reading','Listening','Password','Final','Debrief'];
+const state = {
+  current:'start', group:null, suggested:null, teamName:'', players:'', preScore:null, postScore:null, plays:0,
+  foundWords:[], clues:[], rooms:{room1:false,room2:false,room3:false,room4:false,room5:false,final:false}, selectedCells:[], sentence:[]
+};
+const vocabWords = ['PAINTING','SCULPTURE','GALLERY','CURATOR','FRAME','EVIDENCE','MASK','THIEF','ALARM'];
+const placements = [
+  {word:'PAINTING',r:0,c:0,dr:0,dc:1},
+  {word:'SCULPTURE',r:1,c:0,dr:1,dc:0},
+  {word:'GALLERY',r:0,c:10,dr:1,dc:0},
+  {word:'CURATOR',r:2,c:2,dr:0,dc:1},
+  {word:'FRAME',r:5,c:4,dr:0,dc:1},
+  {word:'EVIDENCE',r:8,c:3,dr:0,dc:1},
+  {word:'MASK',r:10,c:7,dr:0,dc:1},
+  {word:'THIEF',r:4,c:11,dr:1,dc:0},
+  {word:'ALARM',r:11,c:0,dr:0,dc:1}
+];
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+let wordCells = {};
+let selectedCellSet = new Set();
+const prePostQuestions = [
+  {id:'q1', text:'A curator is a person who...', options:['guards a door','organises and cares for museum objects','sells theatre tickets'], answer:1},
+  {id:'q2', text:'Choose the best sentence.', options:['The alarm rang while visitors were looking at the sculpture.','The alarm was ringing while visitors looked at the sculpture.','The alarm rings while visitors looked at the sculpture.'], answer:0},
+  {id:'q3', text:'Which clue is strongest in a mystery?', options:['A feeling about a suspect','Evidence that contradicts an alibi','The longest suspect card'], answer:1},
+  {id:'q4', text:'In Montessori grammar symbols, a black triangle commonly represents...', options:['a noun','a verb','a preposition'], answer:0},
+  {id:'q5', text:'The sentence “The thief hid the mask under the stairs” contains the preposition...', options:['hid','mask','under'], answer:2}
+];
+const grammarData = [
+  {text:'When the lights went out, the visitors ____ at the sculpture.', options:['looked','were looking','are looking'], answer:1},
+  {text:'The alarm ____ at 8:30.', options:['rang','was ringing','has rung'], answer:0},
+  {text:'The thief ____ through the west corridor when the guard saw him.', options:['was running','runs','has run'], answer:0},
+  {text:'The curator ____ the front door and went to her office.', options:['was locking','locked','is locking'], answer:1},
+  {text:'While the police ____ the cameras, they found a missing minute.', options:['checked','were checking','check'], answer:1}
+];
+const readingData = [
+  {text:'Which suspect has the weakest alibi?', options:['Ms Green','Leo Park','Mr Blake'], answer:2},
+  {text:'What contradicts Mr Blake’s statement?', options:['His visitor pass was used at the side door at 8:28.','Blue paint was found in the studio.','The computer was active at 8:11.'], answer:0},
+  {text:'Which conclusion is most reasonable?', options:['The thief probably escaped through the side door.','The mask disappeared before the museum opened.','The curator definitely stole the mask.'], answer:0}
+];
+const listeningData = [
+  {text:'The thief did not leave by...', options:['the main door','the roof','the gift shop'], answer:0},
+  {text:'The thief escaped through the side door...', options:['behind the café','under the stairs','next to the studio'], answer:1},
+  {text:'What object was found?', options:['a theatre ticket','a blue brush','a silver coin'], answer:0}
+];
+const tileData = [
+  {id:'t1',word:'THE',type:'article'}, {id:'t2',word:'THIEF',type:'noun'}, {id:'t3',word:'HID',type:'verb'}, {id:'t4',word:'THE',type:'article'}, {id:'t5',word:'MASK',type:'noun'}, {id:'t6',word:'UNDER',type:'prep'}, {id:'t7',word:'THE',type:'article'}, {id:'t8',word:'STAIRS',type:'noun'}
+];
+const correctSentence = tileData.map(t=>t.id);
+
+function persist(){ localStorage.setItem('museumMysteryState', JSON.stringify(state)); }
+function restore(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('museumMysteryState') || '{}');
+    Object.assign(state, saved || {});
+    state.rooms = Object.assign({room1:false,room2:false,room3:false,room4:false,room5:false,final:false}, state.rooms || {});
+    state.foundWords = state.foundWords || [];
+    state.clues = state.clues || [];
+    state.selectedCells = state.selectedCells || [];
+    state.sentence = state.sentence || [];
+  }catch(e){}
+}
+function showScreen(name){
+  state.current = name; persist();
+  screens.forEach(s=>document.getElementById('screen-'+s).classList.toggle('active',s===name));
+  updateProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function updateProgress(){
+  const idx = screens.indexOf(state.current);
+  document.getElementById('progressBar').style.width = ((idx)/(screens.length-1)*100)+'%';
+  document.getElementById('stepPills').innerHTML = stepLabels.map((l,i)=>`<span class="step-pill ${i<=idx?'done':''}">${l}</span>`).join('');
+}
+function openTeacherNotes(){document.getElementById('teacherModal').classList.add('show')}
+function closeTeacherNotes(){document.getElementById('teacherModal').classList.remove('show')}
+function resetGame(){
+  if(confirm('Restart the escape room and delete local progress?')){
+    localStorage.removeItem('museumMysteryState'); location.reload();
+  }
+}
+function addClues(words){
+  words.forEach(w=>{ if(!state.clues.includes(w)) state.clues.push(w); });
+  persist();
+}
+function groupSupport(){
+  const g = state.group || 'B';
+  if(g==='A') return {hint:'You are Group A: hints are direct and visible. Focus on key words and evidence.', transcript:true};
+  if(g==='C') return {hint:'You are Group C: fewer hints. Use inference and take careful notes.', transcript:false};
+  return {hint:'You are Group B: standard support. Listen for places, objects and contradictions.', transcript:false};
+}
+function renderQuestionSet(containerId, data, prefix){
+  const el = document.getElementById(containerId);
+  el.innerHTML = data.map((q,i)=>`<div class="question"><p>${i+1}. ${q.text}</p>${q.options.map((op,j)=>`<label style="font-weight:600;color:var(--ink);margin:7px 0"><input type="radio" name="${prefix}${i}" value="${j}"> ${op}</label>`).join('')}</div>`).join('');
+}
+function scoreQuestions(data, prefix){
+  let score = 0;
+  data.forEach((q,i)=>{
+    const checked = document.querySelector(`input[name="${prefix}${i}"]:checked`);
+    if(checked && Number(checked.value)===q.answer) score++;
+  });
+  return score;
+}
+function renderPrePost(){
+  renderQuestionSet('preQuestions', prePostQuestions, 'pre');
+  renderQuestionSet('postQuestions', prePostQuestions, 'post');
+}
+function submitPretest(){
+  state.teamName = document.getElementById('teamName').value.trim();
+  state.players = document.getElementById('players').value.trim();
+  const score = scoreQuestions(prePostQuestions,'pre');
+  state.preScore = score;
+  state.suggested = score<=2 ? 'A' : score===3 ? 'B' : 'C';
+  persist();
+  const fb = document.getElementById('preFeedback');
+  fb.className='feedback ok show';
+  fb.innerHTML = `<strong>Pre-test score:</strong> ${score}/5. Suggested group: <strong>${state.suggested}</strong>. You can now choose your group in the briefing.`;
+  setTimeout(()=>{showScreen('briefing'); updateGroupFeedback();}, 900);
+}
+function updateGroupFeedback(){
+  const el = document.getElementById('groupFeedback');
+  el.className='feedback info show';
+  const chosen = state.group ? ` Chosen group: <strong>${state.group}</strong>.` : '';
+  el.innerHTML = `Suggested group: <strong>${state.suggested || 'not calculated yet'}</strong>.${chosen}`;
+  document.getElementById('enterMuseumBtn').disabled = !state.group;
+}
+function selectGroup(g){
+  state.group = g; persist(); updateGroupFeedback();
+  document.querySelectorAll('#screen-briefing .choice').forEach(x=>x.classList.remove('selected'));
+}
+function enterMuseum(){
+  initWordSearch(); renderGrammar(); renderReading(); renderListening();
+  showScreen('room1');
+}
+function initWordSearch(){
+  wordCells = {}; selectedCellSet = new Set(state.selectedCells || []);
+  const grid = Array.from({length:12},()=>Array(12).fill(''));
+  placements.forEach(p=>{
+    wordCells[p.word]=[];
+    [...p.word].forEach((ch,i)=>{
+      const r=p.r+p.dr*i, c=p.c+p.dc*i;
+      grid[r][c]=ch; wordCells[p.word].push(`${r}-${c}`);
+    });
+  });
+  for(let r=0;r<12;r++) for(let c=0;c<12;c++) if(!grid[r][c]) grid[r][c]=letters[(r*7+c*11)%letters.length];
+  const gridEl = document.getElementById('wordGrid');
+  gridEl.innerHTML='';
+  for(let r=0;r<12;r++){
+    for(let c=0;c<12;c++){
+      const id=`${r}-${c}`;
+      const cell=document.createElement('button');
+      cell.type='button'; cell.className='cell'; cell.textContent=grid[r][c]; cell.setAttribute('aria-label',`Letter ${grid[r][c]}`);
+      cell.dataset.id=id; cell.onclick=()=>toggleCell(id);
+      gridEl.appendChild(cell);
+    }
+  }
+  renderWordList(); updateGridStyles(); renderPoliceReport();
+}
+function renderWordList(){
+  document.getElementById('wordList').innerHTML=vocabWords.map(w=>`<span class="word-chip ${state.foundWords.includes(w)?'found':''}">${w}</span>`).join('');
+}
+function toggleCell(id){
+  if(selectedCellSet.has(id)) selectedCellSet.delete(id); else selectedCellSet.add(id);
+  state.selectedCells = [...selectedCellSet];
+  checkFoundWords(); updateGridStyles(); persist();
+}
+function clearSelectedLetters(){ selectedCellSet.clear(); state.selectedCells=[]; updateGridStyles(); persist(); }
+function checkFoundWords(){
+  vocabWords.forEach(w=>{
+    if(!state.foundWords.includes(w) && wordCells[w].every(id=>selectedCellSet.has(id))){ state.foundWords.push(w); }
+  });
+  renderWordList();
+}
+function updateGridStyles(){
+  document.querySelectorAll('.cell').forEach(cell=>{
+    const id=cell.dataset.id;
+    cell.classList.toggle('selected',selectedCellSet.has(id));
+    const isFound = Object.entries(wordCells).some(([w,cells])=>state.foundWords.includes(w) && cells.includes(id));
+    cell.classList.toggle('found',isFound);
+  });
+}
+function revealVocabHint(){
+  const el = document.getElementById('vocabHint'); el.className='feedback info show';
+  if(state.group==='C') el.textContent='Hint for Group C: look for art words and investigation words. Some are vertical.';
+  else if(state.group==='A') el.textContent='Hint for Group A: PAINTING is on the first row. SCULPTURE starts in the first column. GALLERY is vertical near the right side.';
+  else el.textContent='Hint: words can be horizontal or vertical. Start with PAINTING, SCULPTURE and GALLERY.';
+}
+function renderPoliceReport(){
+  const words = ['alarm','curator','gallery','frame','sculpture','thief','mask'];
+  const opts = words.map(w=>`<option value="${w}">${w}</option>`).join('');
+  document.getElementById('policeReport').innerHTML = `At 8:30, the security <select class="inline-select report" data-a="alarm"><option value="">Choose</option>${opts}</select> rang. The <select class="inline-select report" data-a="curator"><option value="">Choose</option>${opts}</select> found an empty case in the main <select class="inline-select report" data-a="gallery"><option value="">Choose</option>${opts}</select>. A small piece of a golden <select class="inline-select report" data-a="frame"><option value="">Choose</option>${opts}</select> was near the <select class="inline-select report" data-a="sculpture"><option value="">Choose</option>${opts}</select>. The police believe a <select class="inline-select report" data-a="thief"><option value="">Choose</option>${opts}</select> stole the Moonstone <select class="inline-select report" data-a="mask"><option value="">Choose</option>${opts}</select>.`;
+}
+function checkPoliceReport(){
+  const fb=document.getElementById('room1Feedback');
+  const enough = state.foundWords.length >= (state.group==='A'?6:7);
+  let ok=true; document.querySelectorAll('.report').forEach(sel=>{ if(sel.value!==sel.dataset.a) ok=false; });
+  if(ok && enough){
+    fb.className='feedback ok show'; fb.innerHTML='Correct. You found the vocabulary key. <div class="clue-box">Collected words: <strong>THE</strong> + <strong>MASK</strong></div>';
+    state.rooms.room1=true; addClues(['THE','MASK']); persist(); setTimeout(()=>showScreen('room2'),1100);
+  } else if(!enough){ fb.className='feedback no show'; fb.textContent='Find more target words in the word search before completing the report.'; }
+  else { fb.className='feedback no show'; fb.textContent='Some words in the report are not correct yet. Read the sentence carefully.'; }
+}
+function renderGrammar(){ renderQuestionSet('grammarQuestions', grammarData, 'grammar'); }
+function checkGrammar(){
+  const score=scoreQuestions(grammarData,'grammar'); const fb=document.getElementById('grammarFeedback');
+  const pass = score >= (state.group==='C'?5:4);
+  if(pass){ fb.className='feedback ok show'; fb.innerHTML=`Grammar lock opened: ${score}/5. <div class="clue-box">Collected words: <strong>THIEF</strong> + <strong>HID</strong></div>`; state.rooms.room2=true; addClues(['THIEF','HID']); setTimeout(()=>showScreen('room3'),1100); }
+  else { fb.className='feedback no show'; fb.innerHTML=`Score: ${score}/5. Review when an action was in progress and when an action was completed.`; }
+  persist();
+}
+function renderReading(){ renderQuestionSet('readingQuestions', readingData, 'reading'); }
+function checkReading(){
+  const score=scoreQuestions(readingData,'reading'); const fb=document.getElementById('readingFeedback');
+  if(score===3){ fb.className='feedback ok show'; fb.innerHTML='Reading lock opened. You identified the contradiction in the alibi. <div class="clue-box">Collected words: <strong>THE</strong> + <strong>STAIRS</strong></div>'; state.rooms.room3=true; addClues(['THE','STAIRS']); setTimeout(()=>showScreen('room4'),1100); }
+  else { fb.className='feedback no show'; fb.textContent=`Score: ${score}/3. Focus on evidence that contradicts what a suspect says.`; }
+  persist();
+}
+function renderListening(){
+  renderQuestionSet('listeningQuestions', listeningData, 'listen');
+  const gs=groupSupport(); document.getElementById('listeningTip').textContent=gs.hint;
+  if(gs.transcript) document.getElementById('transcriptBox').classList.add('show');
+  document.getElementById('playCountBadge').textContent=`Plays: ${state.plays || 0}`;
+}
+function playListening(){
+  const text = 'Officer: We checked the cameras. The thief did not leave by the main door. Guard: Then how did the thief escape? Officer: Through the side door, under the stairs. We also found black boot prints and a torn theatre ticket. Guard: The visitor who said he left early had black boots and a theatre ticket. Officer: Keep that detail. It is the final clue.';
+  state.plays = (state.plays || 0) + 1; persist(); document.getElementById('playCountBadge').textContent=`Plays: ${state.plays}`;
+  if('speechSynthesis' in window){
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text); utter.lang='en-GB'; utter.rate=0.88; utter.pitch=1;
+    window.speechSynthesis.speak(utter);
+  } else {
+    const fb=document.getElementById('listeningFeedback'); fb.className='feedback info show'; fb.textContent='This browser does not support text-to-speech. Use the transcript fallback.';
+    showTranscript();
+  }
+}
+function showTranscript(){ document.getElementById('transcriptBox').classList.add('show'); }
+function checkListening(){
+  const score=scoreQuestions(listeningData,'listen'); const fb=document.getElementById('listeningFeedback');
+  if(score===3){ fb.className='feedback ok show'; fb.innerHTML='Listening lock opened. <div class="clue-box">Collected words: <strong>UNDER</strong> + <strong>THE</strong></div>'; state.rooms.room4=true; addClues(['UNDER','THE']); setTimeout(()=>{renderTiles();showScreen('room5')},1100); }
+  else { fb.className='feedback no show'; fb.textContent=`Score: ${score}/3. Listen again for route, place and object.`; }
+  persist();
+}
+function symbolHTML(type){ return `<span class="sym ${type}" aria-hidden="true"></span>`; }
+function renderTiles(){
+  const bank=document.getElementById('tileBank'); const sent=document.getElementById('sentenceArea');
+  const used = new Set(state.sentence || []);
+  bank.innerHTML = tileData.map(t=>`<button class="word-tile ${used.has(t.id)?'used':''}" onclick="addTile('${t.id}')">${symbolHTML(t.type)} ${t.word}</button>`).join('');
+  sent.innerHTML = (state.sentence || []).map(id=>{const t=tileData.find(x=>x.id===id); return `<span class="word-tile sentence-slot">${symbolHTML(t.type)} ${t.word}</span>`;}).join('') || '<span class="small">Build the sentence here.</span>';
+}
+function addTile(id){ if(!state.sentence.includes(id)){ state.sentence.push(id); persist(); renderTiles(); } }
+function undoTile(){ state.sentence.pop(); persist(); renderTiles(); }
+function resetTiles(){ state.sentence=[]; persist(); renderTiles(); }
+function checkMontessoriSentence(){
+  const fb=document.getElementById('montessoriFeedback');
+  const ok = JSON.stringify(state.sentence)===JSON.stringify(correctSentence);
+  if(ok){ fb.className='feedback ok show'; fb.innerHTML='Correct sentence. Now write it as the final door password below.'; state.rooms.room5=true; }
+  else { fb.className='feedback no show'; fb.textContent='Not yet. Check the grammar symbols: article + noun + verb + article + noun + preposition + article + noun.'; }
+  persist();
+}
+function normalise(s){ return (s||'').trim().toUpperCase().replace(/[^A-Z ]/g,'').replace(/\s+/g,' '); }
+function checkPassword(){
+  const answer=normalise(document.getElementById('passwordInput').value);
+  const fb=document.getElementById('passwordFeedback');
+  const accepted = ['THE THIEF HID THE MASK UNDER THE STAIRS','THIEF HID MASK UNDER STAIRS'].includes(answer);
+  if(accepted){ fb.className='feedback ok show'; fb.textContent='The final door is open. Move to the final accusation.'; state.rooms.room5=true; persist(); setTimeout(()=>showScreen('final'),1000); }
+  else { fb.className='feedback no show'; fb.textContent='The door stays locked. Use the full sentence from the Montessori grammar task.'; }
+}
+function checkFinalAnswer(){
+  const a=normalise(document.getElementById('thiefAnswer').value);
+  const fb=document.getElementById('finalFeedback');
+  const ok = ['MR BLAKE','BLAKE','MRBLAKE','THE ART CRITIC','ART CRITIC'].includes(a);
+  if(ok){ fb.className='feedback ok show'; fb.innerHTML='<strong>Correct.</strong> Mr Blake, the art critic, lied about leaving early. His visitor pass, the side door, the black boot prints and the theatre ticket all point to him.'; state.rooms.final=true; persist(); setTimeout(()=>showScreen('posttest'),1200); }
+  else { fb.className='feedback no show'; fb.textContent='Check the alibis again. Which suspect said he had left before eight, but had evidence near the side door?'; }
+}
+function submitPosttest(){
+  const score=scoreQuestions(prePostQuestions,'post'); state.postScore=score; persist();
+  const diff = score - (state.preScore ?? 0);
+  const fb=document.getElementById('postFeedback'); fb.className='feedback ok show';
+  fb.innerHTML = `Post-test submitted. Score: <strong>${score}/5</strong>. Difference from pre-test: <strong>${diff>=0?'+':''}${diff}</strong>.`;
+  renderResults();
+}
+function renderResults(){
+  const panel=document.getElementById('resultsPanel');
+  const reflection=document.getElementById('debriefReflection').value.trim();
+  panel.innerHTML = `<h3>Team case file</h3><table class="result-table"><tr><th>Item</th><th>Result</th></tr><tr><td>Team</td><td>${escapeHTML(state.teamName || 'Not written')}</td></tr><tr><td>Players</td><td>${escapeHTML(state.players || 'Not written')}</td></tr><tr><td>Group</td><td>${state.group || '-'}</td></tr><tr><td>Pre-test</td><td>${state.preScore ?? '-'} / 5</td></tr><tr><td>Post-test</td><td>${state.postScore ?? '-'} / 5</td></tr><tr><td>Thief</td><td>Mr Blake, the art critic</td></tr></table><p><strong>Debriefing reflection:</strong> ${escapeHTML(reflection || 'Not written')}</p><div class="choice-row"><button onclick="downloadCaseFile()">Download case file</button><button class="secondary" onclick="window.print()">Print / save as PDF</button></div>`;
+}
+function escapeHTML(str){ return String(str).replace(/[&<>'"]/g, ch=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch])); }
+function downloadCaseFile(){
+  const reflection=document.getElementById('debriefReflection').value.trim();
+  const text = `The Museum Mystery - Case File\n\nTeam: ${state.teamName || ''}\nPlayers: ${state.players || ''}\nGroup: ${state.group || ''}\nPre-test: ${state.preScore ?? '-'} / 5\nPost-test: ${state.postScore ?? '-'} / 5\nFinal thief: Mr Blake, the art critic\n\nDebriefing reflection:\n${reflection}\n`;
+  const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a');
+  a.href=url; a.download='museum-mystery-case-file.txt'; a.click(); URL.revokeObjectURL(url);
+}
+function boot(){
+  restore(); renderPrePost(); renderGrammar(); renderReading(); renderListening(); initWordSearch(); renderTiles(); updateProgress();
+  document.getElementById('teamName').value = state.teamName || '';
+  document.getElementById('players').value = state.players || '';
+  if(state.suggested || state.group) updateGroupFeedback();
+  showScreen(state.current || 'start');
+}
+boot();
+</script>
+</body>
+</html>
